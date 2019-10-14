@@ -8,8 +8,10 @@ package org.katas.refactoring;
  */
 public class OrderReceipt {
 
+    public static final char TAB = '\t';
     private static final String CONST_HEADER = "======Printing Orders======\n";
     private static final Double CONST_SALES_TAX = .10;
+    public static final char NEW_LINE = '\n';
     private Order order;
 
     public OrderReceipt(Order order) {
@@ -17,33 +19,48 @@ public class OrderReceipt {
     }
 
     public String printReceipt() {
-
         StringBuilder receipt = new StringBuilder();
-
-        double totSalesTx = 0d;
-        double total = 0d;
 
         receipt.append(CONST_HEADER);
         receipt.append(order.getCustomerName());
         receipt.append(order.getCustomerAddress());
 
-
         for (LineItem lineItem : order.getLineItems()) {
-            receipt.append(lineItem.getDescription()).append('\t');
-            receipt.append(lineItem.getPrice()).append('\t');
-            receipt.append(lineItem.getQuantity()).append('\t');
-            receipt.append(lineItem.totalAmount()).append('\n');
-
-            double salesTax = lineItem.totalAmount() * CONST_SALES_TAX;
-            totSalesTx += salesTax;
-
-            total += lineItem.totalAmount() + salesTax;
+            getInformation(receipt, lineItem);
         }
 
-        receipt.append("Sales Tax").append('\t').append(totSalesTx);
-
-        receipt.append("Total Amount").append('\t').append(total);
+        receipt.append("Sales Tax").append(TAB).append(computeTax());
+        receipt.append("Total Amount").append(TAB).append(computeTotal());
 
         return receipt.toString();
+    }
+
+    private void getInformation(StringBuilder receipt, LineItem lineItem) {
+        receipt.append(lineItem.getDescription()).append(TAB);
+        receipt.append(lineItem.getPrice()).append(TAB);
+        receipt.append(lineItem.getQuantity()).append(TAB);
+        receipt.append(lineItem.totalAmount()).append(NEW_LINE);
+    }
+
+    private double computeSalesTax(LineItem lineItem) {
+        return lineItem.totalAmount() * CONST_SALES_TAX;
+    }
+
+    public double computeTax()
+    {
+        double totSalesTx = 0d;
+        for (LineItem lineItem : order.getLineItems()) {
+            totSalesTx += computeSalesTax(lineItem);
+        }
+        return totSalesTx;
+    }
+
+    public double computeTotal()
+    {
+        double total = 0d;
+        for (LineItem lineItem : order.getLineItems()) {
+            total += lineItem.totalAmount();
+        }
+        return total + computeTax();
     }
 }
